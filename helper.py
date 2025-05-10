@@ -1,11 +1,12 @@
 """helpers.py - Utility functions for input parsing and transaction creation."""
 
-__all__ = ["get_transaction_info", "get_currency_input", "clear_screen", "get_item_info"]
+__all__ = ["get_transaction_info", "get_currency_input", "clear_screen", "get_item_info", "transaction"]
 
 from datetime import datetime
 import json
 import os
 from enum import Enum
+import inventory
 
 class Rarity(Enum):
     COMMON = "common"
@@ -15,6 +16,10 @@ class Rarity(Enum):
     EPIC = "epic"
     LEGENDARY = "legendary"
     ARTIFACT = "artifact"
+
+
+
+### input / output helpers
 
 def is_valid_rarity(value: str) -> bool:
     return value.lower() in (r.value for r in Rarity)
@@ -120,3 +125,64 @@ def update_settings(config_path="config.json"):
             with open(config_path, "w") as f:
                 json.dump(config, f, indent=2)
                 print("Settings updated.")
+
+def create_item_request(username, transaction_type, quantity_needed):
+    item, rarity, quantity = get_item_info(quantity_needed=True)
+    transaction_info = get_transaction_info(username=username, transaction_type="deposit")
+    return {
+        "item_name": item,
+        "rarity": rarity,
+        "quantity_handled": quantity,
+        "transaction_info": transaction_info
+    }
+
+def print_help_text():
+    print("""Commands are:
+        \"add item\" or \"add\" or \"deposit\", 
+        \"remove item\" or \"remove\" or \"withdraw\", 
+        \"check stock\" or \"lookup\" or \"stock\",
+        \"edit settings\" or \"settings\",
+        \"batch\", 
+        \"info\" or \"help\", 
+        \"quit\" or \"exit\"""")
+
+### database interaction helpers
+
+
+
+def process_inventory_transaction(username, inventory_sheet, transaction_sheet, transaction_type):
+    
+    if transaction_type.lower() == "deposit":
+        requested_item = create_item_request(username=username, transaction_type=transaction_type, quantity_needed=True)
+        inventory.add_item(inventory_sheet=inventory_sheet, transaction_sheet=transaction_sheet, requested_item=requested_item)
+        print(f"Added {requested_item['item_name']} with rarity: {requested_item['rarity']} and count: {requested_item['quantity_handled']}.")
+    else:
+        requested_item = create_item_request(username=username, transaction_type=transaction_type, quantity_needed=True)
+        result = inventory.remove_item(inventory_sheet=inventory_sheet, transaction_sheet=transaction_sheet, requested_item=requested_item)
+
+        if result == -1:
+            print(f"Removed {requested_item['quantity_handled']} {requested_item['item_name']} with rarity {requested_item['rarity']}")
+        else:
+            print(f"Insufficent stock. {requested_item['item_name']} has {result} in stock.")
+    
+
+
+def transaction():
+    print("not implemented")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

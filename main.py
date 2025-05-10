@@ -22,31 +22,13 @@ def main():
         #add item, remove item, info, quit
         match action:
             case "add item" | "add" | "deposit":
-                item, rarity, quantity = helper.get_item_info(quantity_needed=True)
-                transaction_info = helper.get_transaction_info(username=username, transaction_type="deposit")
-
-                inventory.add_item(inventory_sheet, transaction_sheet, item, rarity, quantity, transaction_info)
-                print(f"Added {item} with rarity: {rarity} and count: {quantity}.")
+                helper.process_inventory_transaction(username, inventory_sheet, transaction_sheet, transaction_type="deposit")
 
             case "remove item" | "remove" | "withdraw":
-                item, rarity, quantity = helper.get_item_info(quantity_needed=True)
-                transaction_info = helper.get_transaction_info(username=username, transaction_type="withdraw")
-
-                result = inventory.remove_item(inventory_sheet, transaction_sheet, item, rarity, quantity, transaction_info)
-
-                if result == -1:
-                    print("Success")
-                else:
-                    print(f"Insufficent stock. {item} has {result} in stock.")
+                helper.process_inventory_transaction(username, inventory_sheet, transaction_sheet, transaction_type="withdraw")
                         
             case "info" | "help":
-                print("""Commands are:
-                      \"add item\" or \"add\" or \"deposit\", 
-                      \"remove item\" or \"remove\" or \"withdraw\", 
-                      \"check stock\" or \"lookup\" or \"stock\",
-                      \"edit settings\" or \"settings\", 
-                      \"info\" or \"help\", 
-                      \"quit\" or \"exit\"""")
+                helper.print_help_text()
                 
             case "check stock" | "lookup" | "stock":
                 item, rarity = helper.get_item_info(quantity_needed=False)
@@ -55,6 +37,25 @@ def main():
 
             case "edit settings" | "settings":
                 helper.update_settings()
+
+            case "batch":
+                while True:
+                    add_or_remove = input("Batch deposit or batch withdraw?: ")
+                    if add_or_remove in ["deposit", "withdraw", "add", "remove"]:
+                        break
+                    else:
+                        print("Please enter \"deposit\", \"add\", \"withdraw\" or \"remove\"")
+                    
+                if add_or_remove in ["add", "deposit"]:
+                    while True:
+                        helper.process_inventory_transaction(username, inventory_sheet, transaction_sheet, transaction_type="deposit")
+                        if input("Continue? ") not in ["yes", "y"]:
+                            break
+                else:
+                    while True:
+                        helper.process_inventory_transaction(username, inventory_sheet, transaction_sheet, transaction_type="withraw")
+                        if input("Continue? ") in ["yes", "y"]:
+                            break
 
             case "quit" | "exit":
                 running = False

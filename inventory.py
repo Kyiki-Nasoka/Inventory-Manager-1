@@ -26,29 +26,30 @@ def find_row(inventory_sheet, item_name, rarity):
             return cell.row
     return None
 
-def add_item(inventory_sheet, transaction_sheet, item_name, rarity, quantity_handled, transaction_info):
-    found_row = find_row(inventory_sheet, item_name, rarity)
+# Next edit add and remove item to handle the dictionary input
+def add_item(inventory_sheet, transaction_sheet, requested_item):
+    found_row = find_row(inventory_sheet, requested_item["item_name"], requested_item["rarity"])
     if found_row == None:
-        inventory_sheet.append_row([item_name, rarity, quantity_handled])
+        inventory_sheet.append_row([requested_item["item_name"], requested_item["rarity"], requested_item["quantity_handled"]])
     else:
         current_quantity = int(inventory_sheet.cell(found_row, QUANTITY_COLUMN_INDEX).value)
-        new_quantity = current_quantity + quantity_handled
+        new_quantity = current_quantity + requested_item["quantity_handled"]
         inventory_sheet.update_cell(found_row, QUANTITY_COLUMN_INDEX, new_quantity)
     
-    transaction(transaction_sheet, item_name, rarity, quantity_handled, transaction_info)
+    transaction(transaction_sheet, requested_item["item_name"], requested_item["rarity"], requested_item["quantity_handled"], requested_item["transaction_info"])
         
-def remove_item(inventory_sheet, transaction_sheet, item_name, rarity, quantity_handled, transaction_info):
-    found_row = find_row(inventory_sheet, item_name, rarity)
+def remove_item(inventory_sheet, transaction_sheet, requested_item):
+    found_row = find_row(inventory_sheet, requested_item["item_name"], requested_item["rarity"])
     if found_row == None:
         return 0
     else: 
         current_quantity = int(inventory_sheet.cell(found_row, QUANTITY_COLUMN_INDEX).value)
-        if quantity_handled > current_quantity:
+        if requested_item["quantity_handled"] > current_quantity:
             return current_quantity
         
-        new_quantity = current_quantity - quantity_handled
+        new_quantity = current_quantity - requested_item["quantity_handled"]
         inventory_sheet.update_cell(found_row, QUANTITY_COLUMN_INDEX, new_quantity)
-        transaction(transaction_sheet, item_name, rarity, quantity_handled, transaction_info)
+        transaction(transaction_sheet, requested_item["item_name"], requested_item["rarity"], requested_item["quantity_handled"], requested_item["transaction_info"])
         return -1
 
 def check_stock(inventory_sheet, item_name, rarity):
